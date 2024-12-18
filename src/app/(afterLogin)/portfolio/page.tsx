@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useCurrencyStore } from "@/app/store/currency.ts";
-import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
+import {
+    ArrowLeftRight,
+    MessageCircle,
+    Plus,
+    Sparkle,
+    Trash2,
+} from "lucide-react";
 
 // 실제 환경에서는 API에서 가져와야 하는 환율 데이터
 const exchangeRates = {
@@ -38,6 +44,7 @@ export default function PortfolioTable() {
     const [selectedItems, setSelectedItems] = useState([]);
     const [openDropdownId, setOpenDropdownId] = useState(null);
     const { selectedCurrency, currencies, setCurrency } = useCurrencyStore();
+    const [showAIAdvice, setShowAIAdvice] = useState(false);
 
     // 계좌 목록 및 선택된 계좌 상태
     const [accounts, setAccounts] = useState([
@@ -187,6 +194,22 @@ export default function PortfolioTable() {
     const handleTransfer = () => {
         console.log("Transfer items:", selectedItems);
         setSelectedItems([]);
+    };
+
+    // AI 조언 생성 함수
+    const generateAIAdvice = () => {
+        const totalValue = totals.currentPrice;
+        const totalProfit = totals.totalProfit;
+        const profitPercentage =
+            (totalProfit / (totalValue - totalProfit)) * 100;
+
+        if (profitPercentage < 0) {
+            return "포트폴리오의 수익률이 마이너스를 기록하고 있습니다. 현재 보유 중인 주식들의 실적과 전망을 재검토하고, 분산 투자를 통해 리스크를 관리하는 것을 추천드립니다.";
+        } else if (profitPercentage < 5) {
+            return "안정적인 수익률을 보이고 있지만, 배당주 비중을 높여 정기적인 수익을 확보하는 것을 고려해보세요.";
+        } else {
+            return "훌륭한 포트폴리오 운용을 하고 계십니다! 지속적인 모니터링과 함께 정기적인 리밸런싱을 통해 수익을 관리하세요.";
+        }
     };
 
     // 평균 배당 수익률 계산
@@ -659,6 +682,34 @@ export default function PortfolioTable() {
                             </tr>
                         </tfoot>
                     </table>
+                </div>
+            </div>
+            <button
+                onClick={() => setShowAIAdvice(!showAIAdvice)}
+                className="my-4 float-end bg-[#b641ff] hover:bg-[#9736d4] text-white flex justify-center items-center gap-2 px-3.5 py-2 text-sm rounded-[0.5rem] transition-all"
+            >
+                <Sparkle className="w-4 h-4" />
+                AI 컨설턴트
+            </button>
+
+            <div
+                className={`
+                        clear-both w-80 transform transition-all duration-300 ease-out float-end
+                        ${
+                            showAIAdvice
+                                ? "opacity-100 translate-y-0"
+                                : "opacity-0 -translate-y-4 invisible pointer-events-none"
+                        }
+                    `}
+            >
+                <div className="relative bg-[#f8f5ff] border border-[#b641ff] p-4 rounded-[0.5rem] transform transition-all duration-300 ease-out origin-top-right animate-fade-scale">
+                    <div className="absolute -top-2 right-6 w-4 h-4 bg-[#f8f5ff] border-t border-l border-[#b641ff] rotate-45 transition-transform duration-200 ease-out scale-0 animate-pop"></div>
+                    <div className="flex items-start gap-2 text-[#b641ff]">
+                        <MessageCircle className="w-4 h-4 mt-1 flex-shrink-0 animate-bounce" />
+                        <p className="text-sm flex-grow transform transition-all duration-300 delay-150 animate-fade-up">
+                            {generateAIAdvice()}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
